@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>OpenTopoMap Tile Test</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    body { margin: 0; }
+    #map { height: 100vh; }
+    #status {
+      position: absolute; top: 10px; right: 10px; z-index: 1000;
+      background: white; padding: 8px 12px; border-radius: 4px;
+      font-family: monospace; font-size: 13px; box-shadow: 0 1px 4px rgba(0,0,0,.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <div id="status">Loading tiles…</div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const map = L.map('map').setView([37.0, -111.5], 8);
+
+    const tileUrl = 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
+    const tileLayer = L.tileLayer(tileUrl, {
+      maxZoom: 17,
+      attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, ' +
+                   '<a href="http://viewfinderpanoramas.org">SRTM</a> | ' +
+                   'Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> ' +
+                   '(<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+    }).addTo(map);
+
+    let loaded = 0;
+    tileLayer.on('tileload', () => {
+      loaded++;
+      if (loaded === 1) {
+        document.getElementById('status').textContent = '✓ OpenTopoMap tiles loading OK';
+        document.getElementById('status').style.color = 'green';
+      }
+    });
+    tileLayer.on('tileerror', (e) => {
+      document.getElementById('status').textContent = '✗ Tile error: ' + e.tile.src;
+      document.getElementById('status').style.color = 'red';
+    });
+
+    // Sample marker at Zion area to confirm map is centered correctly
+    L.marker([37.2, -112.9]).addTo(map)
+      .bindPopup('<b>Tile test marker</b><br>Zion / Utah area')
+      .openPopup();
+  </script>
+</body>
+</html>
