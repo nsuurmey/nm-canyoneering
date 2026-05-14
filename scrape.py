@@ -185,7 +185,16 @@ def fetch(url: str, cache_path: Path | None = None) -> str | None:
         log.error("Fetch failed for %s: %s", url, exc)
         return None
 
-    text = resp.content.decode("utf-8", errors="replace")
+    # Try the declared encoding first; fall back to windows-1252 (common on
+    # older personal sites), then force UTF-8 with replacement chars.
+    enc = resp.encoding or "utf-8"
+    try:
+        text = resp.content.decode(enc)
+    except (UnicodeDecodeError, LookupError):
+        try:
+            text = resp.content.decode("windows-1252")
+        except UnicodeDecodeError:
+            text = resp.content.decode("utf-8", errors="replace")
 
     if cache_path:
         cache_path.parent.mkdir(parents=True, exist_ok=True)
